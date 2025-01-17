@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading;
 
@@ -12,18 +14,8 @@ namespace TnF2
         static string strPath = @".\";
         static int currentCheckSum = 0;
         static FileSystemWatcher fsw;
+        static List<int> CacheList = new List<int> { };
 
-        public class EventData
-        {
-            public DateTime DateTime { get; set; }
-            public string Competition { get; set; }
-            public string Event { get; set; }
-            public string Wind { get; set; }
-            public string Rank { get; set; }
-            public string Lane { get; set; }
-            public string BiB { get; set; }
-            public string Time { get; set; }
-        }
 
         // Skapa hash på [filnamn + storlek + skapad tid] för att komma runt "buggar" i komponenten FileSystemWatcher.
         private static int CalculateChecksum(string input)
@@ -64,17 +56,25 @@ namespace TnF2
 
         static bool WriteToDB()
         {
+            /* Spara till databas */
             return true;
         }
 
-        static void UpdateCache(int NewCache)
+        static void UpdateCache(int NewChecksum)
         {
-            //
+            CacheList.Append(NewChecksum);
+            
         }
 
-        static void UpdateCache(int NewCache, int OldCache)
+        static void UpdateCache(int NewChecksum, int OldChecksum)
         {
-            //
+            if (CacheList.Contains(OldChecksum))
+            {
+                CacheList.Remove(OldChecksum);
+            }
+            CacheList.Append(NewChecksum);
+
+           
         }
 
         static void GetArgs(string[] args)
