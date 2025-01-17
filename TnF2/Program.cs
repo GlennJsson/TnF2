@@ -138,12 +138,7 @@ namespace TnF2
 
         private static void OnDeleted(object sender, FileSystemEventArgs e)
         {
-            int _s = CalculateChecksum(e.FullPath);
-
-            if (_s != currentCheckSum)
-            {
-                Console.WriteLine($"Deleted: {e.Name}");
-            }
+           
         }
             
 
