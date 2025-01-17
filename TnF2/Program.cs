@@ -13,9 +13,20 @@ namespace TnF2
         static int currentCheckSum = 0;
         static FileSystemWatcher fsw;
 
+        public class EventData
+        {
+            public DateTime DateTime { get; set; }
+            public string Competition { get; set; }
+            public string Event { get; set; }
+            public string Wind { get; set; }
+            public string Rank { get; set; }
+            public string Lane { get; set; }
+            public string BiB { get; set; }
+            public string Time { get; set; }
+        }
 
         // Skapa hash på [filnamn + storlek + skapad tid] för att komma runt "buggar" i komponenten FileSystemWatcher.
-        static int CalculateChecksum(string input)
+        private static int CalculateChecksum(string input)
         {
             var _f = new FileInfo(input);
 
@@ -30,7 +41,6 @@ namespace TnF2
             {
                 sum += c; // Add ASCII value of each character
             }
-            //Console.WriteLine(sum);
 
             return sum;
         }
@@ -42,7 +52,29 @@ namespace TnF2
             Console.WriteLine("  -h : Prints this help.");
             Console.WriteLine("  -p : Set working directory for filewatch. (E.g. .\\Dir\\ or full path).");
             Console.WriteLine("");
+
             System.Environment.Exit(0);
+        }
+
+        static bool ReadFile(string FullPath)
+        {
+            /* Läs in textfil */
+            return true;
+        }
+
+        static bool WriteToDB()
+        {
+            return true;
+        }
+
+        static void UpdateCache(int NewCache)
+        {
+            //
+        }
+
+        static void UpdateCache(int NewCache, int OldCache)
+        {
+            //
         }
 
         static void GetArgs(string[] args)
@@ -78,7 +110,7 @@ namespace TnF2
             fsw = new FileSystemWatcher(strPath);
 
             Console.Out.WriteLine("Press enter to exit.");
-            Console.WriteLine("Reading directory: {0}", strPath);
+            Log($"Reading directory: {strPath}");
 
             WatchIt();
 
@@ -114,45 +146,83 @@ namespace TnF2
         private static void OnChanged(object sender, FileSystemEventArgs e)
         {
             int _cs = CalculateChecksum(e.FullPath);
-            if (_cs.CompareTo(currentCheckSum) != 0)
+
+            if (_cs != currentCheckSum)
             {
-                Console.WriteLine($"Changed: {e.Name} :: [{_cs}]");
-                currentCheckSum = _cs;
+                if (ReadFile(e.FullPath))
+                {
+                    if(WriteToDB())
+                        UpdateCache(_cs, currentCheckSum);
+                    currentCheckSum = _cs;
+                }
+                else
+                {
+                    Log($"Error reading file {e.FullPath}");
+                }
+                
+                Log($"Changed: {e.Name} :: [{currentCheckSum}]");
+                
             }
         }
 
         private static void OnCreated(object sender, FileSystemEventArgs e)
-        {
-            Thread.Sleep(200);
-            int _s = CalculateChecksum(e.FullPath);
+        {            
+            Thread.Sleep(400);
+            int _cs = CalculateChecksum(e.FullPath);
             //currentCheckSum = CalculateChecksum(e.FullPath);
 
-            if (_s != currentCheckSum)
+            if (_cs != currentCheckSum)
             {
-                currentCheckSum = _s;
-                string value = $"Created: {e.Name} :: :: [{currentCheckSum}]";
-                Console.WriteLine(value);
+                
+                if(ReadFile(e.FullPath))
+                {
+                    if(WriteToDB())
+                        UpdateCache(_cs);
+                    currentCheckSum = _cs;
+                }
+                else
+                {
+                    Log($"Error reading file {e.FullPath}");
+                }
+
+                Log($"Created: {e.Name} :: [{currentCheckSum}]");
                 
             }
         }
 
         private static void OnDeleted(object sender, FileSystemEventArgs e)
         {
-           
+           // Används inte
         }
             
 
         private static void OnRenamed(object sender, RenamedEventArgs e)
         {
             int _cs = CalculateChecksum(e.FullPath);
+
             if (_cs != currentCheckSum)
             {
-                currentCheckSum = _cs;
-                Console.WriteLine($"Renamed:");
-                Console.WriteLine($"    Old: {e.OldFullPath}");
-                Console.WriteLine($"    New: {e.FullPath} :: [{currentCheckSum}]");
+                if (ReadFile(e.FullPath))
+                {
+                    if (WriteToDB())
+                        UpdateCache(_cs, currentCheckSum);
+                    currentCheckSum = _cs;
+                }
+                else
+                {
+                    Log($"Error reading file {e.FullPath}");
+                }
+
+                Log($"Renamed:");
+                Log($"    Old: {e.OldFullPath}");
+                Log($"    New: {e.FullPath} :: [{currentCheckSum}]");
                 
             }
+        }
+
+        private static void Log(string Message)
+        {
+            Console.WriteLine(Message);
         }
 
         private static void OnError(object sender, ErrorEventArgs e) =>
