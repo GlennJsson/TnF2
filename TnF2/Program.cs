@@ -101,7 +101,7 @@ namespace TnF2
                                 
             fsw.Changed += OnChanged;
             fsw.Created += OnCreated;
-            fsw.Deleted += OnDeleted;
+            //fsw.Deleted += OnDeleted;
             fsw.Renamed += OnRenamed;
             fsw.Error += OnError;
 
@@ -123,18 +123,27 @@ namespace TnF2
 
         private static void OnCreated(object sender, FileSystemEventArgs e)
         {
-            fsw.EnableRaisingEvents = false;
-            Thread.Sleep(500);
-            currentCheckSum = CalculateChecksum(e.FullPath);
+            Thread.Sleep(200);
+            int _s = CalculateChecksum(e.FullPath);
+            //currentCheckSum = CalculateChecksum(e.FullPath);
 
-            string value = $"Created: {e.Name} :: :: [{currentCheckSum}]";
-            Console.WriteLine(value);
-            fsw.EnableRaisingEvents = true;
+            if (_s != currentCheckSum)
+            {
+                currentCheckSum = _s;
+                string value = $"Created: {e.Name} :: :: [{currentCheckSum}]";
+                Console.WriteLine(value);
+                
+            }
         }
 
         private static void OnDeleted(object sender, FileSystemEventArgs e)
         {
-            Console.WriteLine($"Deleted: {e.Name}");
+            int _s = CalculateChecksum(e.FullPath);
+
+            if (_s != currentCheckSum)
+            {
+                Console.WriteLine($"Deleted: {e.Name}");
+            }
         }
             
 
@@ -143,10 +152,11 @@ namespace TnF2
             int _cs = CalculateChecksum(e.FullPath);
             if (_cs != currentCheckSum)
             {
+                currentCheckSum = _cs;
                 Console.WriteLine($"Renamed:");
                 Console.WriteLine($"    Old: {e.OldFullPath}");
-                Console.WriteLine($"    New: {e.FullPath} :: [{_cs}]");
-                currentCheckSum = _cs;
+                Console.WriteLine($"    New: {e.FullPath} :: [{currentCheckSum}]");
+                
             }
         }
 
