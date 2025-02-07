@@ -22,7 +22,10 @@ namespace TnF2
         {
             var _f = new FileInfo(input);
 
-            string _s = _f.FullName + _f.Length.ToString() + _f.CreationTime.ToString();
+            string _s = _f.FullName + _f.Length.ToString() + _f.CreationTime.ToString() + _f.LastWriteTime.ToString();
+            
+            Log(_s);
+            Log("Last write: " + _f.LastWriteTime.ToString());
 
             Byte[] _b = Encoding.UTF8.GetBytes(_s);
 
@@ -33,6 +36,8 @@ namespace TnF2
             {
                 sum += c; // Add ASCII value of each character
             }
+
+            Log("Checksum: " + sum);
 
             return sum;
         }
@@ -143,8 +148,15 @@ namespace TnF2
 
         }
 
+        private static void PausExec()
+        {
+            Thread.Sleep(500);
+        }
+
         private static void OnChanged(object sender, FileSystemEventArgs e)
         {
+            PausExec();
+
             int _cs = CalculateChecksum(e.FullPath);
 
             if (_cs != currentCheckSum)
@@ -160,14 +172,15 @@ namespace TnF2
                     Log($"Error reading file {e.FullPath}");
                 }
                 
-                Log($"Changed: {e.Name} :: [{currentCheckSum}]");
+                Log($"*** Changed: {e.Name} :: [{currentCheckSum}]");
                 
             }
         }
 
         private static void OnCreated(object sender, FileSystemEventArgs e)
-        {            
-            Thread.Sleep(400);
+        {
+            PausExec();
+
             int _cs = CalculateChecksum(e.FullPath);
             //currentCheckSum = CalculateChecksum(e.FullPath);
 
@@ -185,7 +198,7 @@ namespace TnF2
                     Log($"Error reading file {e.FullPath}");
                 }
 
-                Log($"Created: {e.Name} :: [{currentCheckSum}]");
+                Log($"*** Created: {e.Name} :: [{currentCheckSum}]");
                 
             }
         }
@@ -198,6 +211,8 @@ namespace TnF2
 
         private static void OnRenamed(object sender, RenamedEventArgs e)
         {
+            PausExec();
+
             int _cs = CalculateChecksum(e.FullPath);
 
             if (_cs != currentCheckSum)
